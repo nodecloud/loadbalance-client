@@ -59,3 +59,4 @@ class ServiceWatcher {
     }
 }
 exports.default = ServiceWatcher;
+module.exports = exports['default'];
