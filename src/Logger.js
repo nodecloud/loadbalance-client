@@ -4,7 +4,7 @@
 export default class Logger {
     constructor(logger) {
         this.logger = logger || console;
-        this.logger.log = this.logger.log || console.log
+        this.logger.log = this.logger.log || console.log;
     }
 
     /**
