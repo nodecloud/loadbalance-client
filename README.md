@@ -1,7 +1,7 @@
 # loadbalance-client
 
 ## Usage
-```
+``` javascript
 import LoadBalanceClient from 'loadbalance-client';
 import Consul from 'consul';
 
