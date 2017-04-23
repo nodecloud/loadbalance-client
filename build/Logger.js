@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", {
 class Logger {
     constructor(logger) {
         this.logger = logger || console;
+        this.logger.log = this.logger.log || console.log;
     }
 
     /**

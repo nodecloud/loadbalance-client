@@ -13,9 +13,11 @@ export default class ServiceWatcher {
      * @param serviceName
      */
     watch(serviceName) {
-        this.watcher = this.consul.watch(this.consul.health.service, {
-            service: serviceName || this.serviceName,
-            passing: true
+        this.watcher = this.consul.watch({
+            method: this.consul.health.service, options: {
+                service: serviceName || this.serviceName,
+                passing: true
+            }
         });
 
         this.watcher.on('change', (data, res) => {
