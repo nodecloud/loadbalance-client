@@ -22,7 +22,7 @@ var engineCache = _interopRequireWildcard(_EngineCache);
 
 var _ServiceWatcher = require('./ServiceWatcher');
 
-var ServiceWatcher = _interopRequireWildcard(_ServiceWatcher);
+var _ServiceWatcher2 = _interopRequireDefault(_ServiceWatcher);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -35,7 +35,7 @@ class LoadBalanceClient {
     constructor(serviceName, consul, options = {}) {
         this.serviceName = serviceName;
         this.consul = consul;
-        this.watcher = new ServiceWatcher(serviceName, consul);
+        this.watcher = new _ServiceWatcher2.default(serviceName, consul);
         this.initWatcher();
         this.logger = new _Logger2.default(options.logger);
     }

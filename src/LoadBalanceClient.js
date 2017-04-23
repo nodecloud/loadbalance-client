@@ -2,7 +2,7 @@ import Logger from './Logger';
 import * as http from './HttpClient';
 import * as loadBalance from './LoadBalance';
 import * as engineCache from './EngineCache';
-import * as ServiceWatcher from './ServiceWatcher';
+import ServiceWatcher from './ServiceWatcher';
 
 /**
  * An http client with load balance.
@@ -24,7 +24,7 @@ export default class LoadBalanceClient {
 
         options.url = endpoint + options.url;
         options.logger = this.logger;
-        
+
         return http.send(options);
     }
 
