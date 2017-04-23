@@ -10,18 +10,6 @@ const SERVICE_NAME = 'a-service';
 const consul = new Consul(/* ignore */);
 const lbClient = new LoadBalanceClient(SERVICE_NAME, consul);
 
-/**
- * Check the service's health status.
- */
-export function checkHealth() {
-    return lbClient.get({
-        url: `/${SERVICE_NAME}/health`,
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-}
-
 export function getResource(id) {
     return lbClient.get({
         url: `/${SERVICE_NAME}/v1/resources/:id`,
