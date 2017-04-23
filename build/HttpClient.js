@@ -1,8 +1,22 @@
-//common lib
-import request from 'request';
-import rp from 'request-promise';
+'use strict';
 
-request.defaults.pool = {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.send = send;
+
+var _request = require('request');
+
+var _request2 = _interopRequireDefault(_request);
+
+var _requestPromise = require('request-promise');
+
+var _requestPromise2 = _interopRequireDefault(_requestPromise);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+//common lib
+_request2.default.defaults.pool = {
     pool: { maxSockets: Infinity }
 };
 
@@ -12,7 +26,7 @@ request.defaults.pool = {
  * @param options
  * @return {Promise.<*>}
  */
-export async function send(options = {}) {
+async function send(options = {}) {
     const logger = options.logger;
 
     //compile uri params.
@@ -35,7 +49,7 @@ export async function send(options = {}) {
     options.json = true;
 
     try {
-        let response = await rp(options);
+        let response = await (0, _requestPromise2.default)(options);
 
         logger.debug(`Response success, response status code is ${response.statusCode}, body is ${JSON.stringify(response.body)}`);
 

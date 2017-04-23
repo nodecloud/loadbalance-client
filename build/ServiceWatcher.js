@@ -1,7 +1,12 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 /**
  * Service watcher.
  */
-export default class ServiceWatcher {
+class ServiceWatcher {
     constructor(serviceName, consul) {
         this.serviceName = serviceName;
         this.consul = consul;
@@ -53,3 +58,4 @@ export default class ServiceWatcher {
         this.watcher.end();
     }
 }
+exports.default = ServiceWatcher;

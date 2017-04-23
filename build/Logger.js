@@ -1,7 +1,12 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 /**
  * Logger class.
  */
-export default class Logger {
+class Logger {
     constructor(logger) {
         this.logger = logger || console;
     }
@@ -56,3 +61,4 @@ export default class Logger {
         this.logger.log('debug', `${msg}${error ? ' The exception is ' + error : ''}`);
     }
 }
+exports.default = Logger;

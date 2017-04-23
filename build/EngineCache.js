@@ -1,9 +1,16 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.set = set;
+exports.get = get;
 let cache = {};
 
-export function set(key, val) {
+function set(key, val) {
     cache[key] = val;
 }
 
-export function get(key) {
+function get(key) {
     return cache[key];
 }

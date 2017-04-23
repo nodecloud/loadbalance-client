@@ -1,19 +1,43 @@
-import Logger from './Logger';
-import * as http from './HttpClient';
-import * as loadBalance from './LoadBalance';
-import * as engineCache from './EngineCache';
-import * as ServiceWatcher from './ServiceWatcher';
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _Logger = require('./Logger');
+
+var _Logger2 = _interopRequireDefault(_Logger);
+
+var _HttpClient = require('./HttpClient');
+
+var http = _interopRequireWildcard(_HttpClient);
+
+var _LoadBalance = require('./LoadBalance');
+
+var loadBalance = _interopRequireWildcard(_LoadBalance);
+
+var _EngineCache = require('./EngineCache');
+
+var engineCache = _interopRequireWildcard(_EngineCache);
+
+var _ServiceWatcher = require('./ServiceWatcher');
+
+var ServiceWatcher = _interopRequireWildcard(_ServiceWatcher);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * An http client with load balance.
  */
-export default class LoadBalanceClient {
+class LoadBalanceClient {
     constructor(serviceName, consul, options = {}) {
         this.serviceName = serviceName;
         this.consul = consul;
         this.watcher = new ServiceWatcher(serviceName, consul);
         this.initWatcher();
-        this.logger = new Logger(options.logger);
+        this.logger = new _Logger2.default(options.logger);
     }
 
     async send(options) {
@@ -112,3 +136,4 @@ export default class LoadBalanceClient {
         });
     }
 }
+exports.default = LoadBalanceClient;
