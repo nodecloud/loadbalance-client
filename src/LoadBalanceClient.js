@@ -105,7 +105,7 @@ export default class LoadBalanceClient {
         this.watcher.change(services => {
             this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
             let wrapper = this.engineCache[this.serviceName];
-            let hash = md5(services);
+            let hash = md5(JSON.stringify(services));
             if (wrapper && hash !== wrapper.hash) {
                 wrapper.engine.update(services);
                 wrapper.hash = hash
