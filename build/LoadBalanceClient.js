@@ -26,6 +26,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 /**
  * An http client with load balance.
  */
@@ -40,82 +42,110 @@ class LoadBalanceClient {
         this.logger = new _Logger2.default(options.logger);
     }
 
-    async send(options) {
-        if (!options) {
-            throw new Error(`No options was given, please give an options before send api request.`);
-        }
-        const endpoint = await this.getEndpoint();
+    send(options) {
+        var _this = this;
 
-        options.url = endpoint + options.url;
-        options.logger = this.logger;
+        return _asyncToGenerator(function* () {
+            if (!options) {
+                throw new Error(`No options was given, please give an options before send api request.`);
+            }
+            const endpoint = yield _this.getEndpoint();
 
-        return http.send(options);
+            options.url = endpoint + options.url;
+            options.logger = _this.logger;
+
+            return http.send(options);
+        })();
     }
 
-    async get(options = {}) {
-        options.method = 'GET';
-        return this.send(options);
+    get(options = {}) {
+        var _this2 = this;
+
+        return _asyncToGenerator(function* () {
+            options.method = 'GET';
+            return _this2.send(options);
+        })();
     }
 
-    async post(options = {}) {
-        options.method = 'POST';
-        return this.send(options);
+    post(options = {}) {
+        var _this3 = this;
+
+        return _asyncToGenerator(function* () {
+            options.method = 'POST';
+            return _this3.send(options);
+        })();
     }
 
-    async del(options = {}) {
-        options.method = 'DELETE';
-        return this.send(options);
+    del(options = {}) {
+        var _this4 = this;
+
+        return _asyncToGenerator(function* () {
+            options.method = 'DELETE';
+            return _this4.send(options);
+        })();
     }
 
-    async put(options = {}) {
-        options.method = 'PUT';
-        return this.send(options);
+    put(options = {}) {
+        var _this5 = this;
+
+        return _asyncToGenerator(function* () {
+            options.method = 'PUT';
+            return _this5.send(options);
+        })();
     }
 
     /**
      * Get a http endpoint.
      * @return {Promise.<string>}
      */
-    async getEndpoint() {
-        let service = null;
-        try {
-            service = await this.getService();
-        } catch (e) {
-            this.logger.error('Get consul service error.', e);
-        }
+    getEndpoint() {
+        var _this6 = this;
 
-        if (!service) {
-            this.logger.error(`No service '${this.serviceName}' was found.`);
-            throw new Error(`No service '${this.serviceName}' was found.`);
-        }
+        return _asyncToGenerator(function* () {
+            let service = null;
+            try {
+                service = yield _this6.getService();
+            } catch (e) {
+                _this6.logger.error('Get consul service error.', e);
+            }
 
-        return `http://${service.Service.Address}:${service.Service.Port}`;
+            if (!service) {
+                _this6.logger.error(`No service '${_this6.serviceName}' was found.`);
+                throw new Error(`No service '${_this6.serviceName}' was found.`);
+            }
+
+            return `http://${service.Service.Address}:${service.Service.Port}`;
+        })();
     }
 
     /**
      * Get a available service by load balance.
      * @return {Promise.<void>}
      */
-    async getService() {
-        if (!this.engineCache[this.serviceName]) {
-            const services = await new Promise((resolve, reject) => {
-                this.consul.health.service(this.serviceName, (err, result) => {
-                    if (err) {
-                        return reject(err);
-                    }
+    getService() {
+        var _this7 = this;
 
-                    resolve(result);
+        return _asyncToGenerator(function* () {
+            if (!_this7.engineCache[_this7.serviceName]) {
+                const services = yield new Promise(function (resolve, reject) {
+                    _this7.consul.health.service(_this7.serviceName, function (err, result) {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(result);
+                    });
                 });
-            });
 
-            this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
-            this.engineCache[this.serviceName] = {
-                engine: loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE),
-                hash: (0, _Util.md5)(JSON.stringify(services))
-            };
-        }
+                _this7.logger.info(`Refresh the '${_this7.serviceName}' service list, the list is ${JSON.stringify(services)}`);
+                _this7.engineCache[_this7.serviceName] = {
+                    engine: loadBalance.getEngine(services, _this7.options.strategy || loadBalance.RANDOM_ENGINE),
+                    hash: (0, _Util.md5)(JSON.stringify(services))
+                };
+            }
 
-        return this.engineCache[this.serviceName].engine.pick();
+            return _this7.engineCache[_this7.serviceName].engine.pick();
+        })();
     }
 
     /**
