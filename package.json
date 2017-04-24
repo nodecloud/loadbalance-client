@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/miaowing/loadbalance-client#readme",
   "dependencies": {
+    "blueimp-md5": "^2.7.0",
     "loadbalance": "git+https://github.com/node-cloud/node-loadbalance.git",
     "request": "^2.81.0",
     "request-promise": "^4.2.0"

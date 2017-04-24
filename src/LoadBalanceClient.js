@@ -1,7 +1,8 @@
+import {md5} from './Util';
+
 import Logger from './Logger';
 import * as http from './HttpClient';
 import * as loadBalance from './LoadBalance';
-import * as engineCache from './EngineCache';
 import ServiceWatcher from './ServiceWatcher';
 
 /**
@@ -12,6 +13,7 @@ export default class LoadBalanceClient {
         this.options = options = options || {};
         this.serviceName = serviceName;
         this.consul = consul;
+        this.engineCache = {};
         this.watcher = new ServiceWatcher(serviceName, consul);
         this.initWatcher();
         this.logger = new Logger(options.logger);
@@ -74,7 +76,7 @@ export default class LoadBalanceClient {
      * @return {Promise.<void>}
      */
     async getService() {
-        if (!engineCache.get(this.serviceName)) {
+        if (!this.engineCache[this.serviceName]) {
             const services = await new Promise((resolve, reject) => {
                 this.consul.health.service(this.serviceName, (err, result) => {
                     if (err) {
@@ -86,10 +88,13 @@ export default class LoadBalanceClient {
             });
 
             this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
-            engineCache.set(this.serviceName, loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE));
+            this.engineCache[this.serviceName] = {
+                engine: loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE),
+                hash: md5(JSON.stringify(services))
+            };
         }
 
-        return engineCache.get(this.serviceName).pick();
+        return this.engineCache[this.serviceName].engine.pick();
     }
 
     /**
@@ -99,14 +104,19 @@ export default class LoadBalanceClient {
         this.watcher.watch();
         this.watcher.change(services => {
             this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
-            let engine = engineCache.get(this.serviceName);
-            if (engine) {
-                engine.update(services);
-            } else {
-                engine = loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE);
+            let wrapper = this.engineCache[this.serviceName];
+            let hash = md5(services);
+            if (wrapper && hash !== wrapper.hash) {
+                wrapper.engine.update(services);
+                wrapper.hash = hash
+            } else if (!wrapper) {
+                wrapper = {
+                    engine: loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE),
+                    hash: hash
+                }
             }
 
-            engineCache.set(this.serviceName, engine);
+            this.engineCache[this.serviceName] = wrapper;
         });
         this.watcher.error(err => {
             this.logger.error(`Check the service '${this.serviceName}''s health error`, err);
