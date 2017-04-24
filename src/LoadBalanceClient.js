@@ -9,6 +9,7 @@ import ServiceWatcher from './ServiceWatcher';
  */
 export default class LoadBalanceClient {
     constructor(serviceName, consul, options = {}) {
+        this.options = options = options || {};
         this.serviceName = serviceName;
         this.consul = consul;
         this.watcher = new ServiceWatcher(serviceName, consul);
@@ -85,7 +86,7 @@ export default class LoadBalanceClient {
             });
 
             this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
-            engineCache.set(this.serviceName, loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE));
+            engineCache.set(this.serviceName, loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE));
         }
 
         return engineCache.get(this.serviceName).pick();
