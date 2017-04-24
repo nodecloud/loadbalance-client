@@ -5,7 +5,12 @@
   "main": "build/LoadBalanceClient.js",
   "scripts": {
     "build": "babel src -d build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=development nyc ava ./test"
+  },
+  "ava": {
+    "require": [
+      "babel-register"
+    ]
   },
   "repository": {
     "type": "git",
@@ -25,11 +30,15 @@
     "blueimp-md5": "^2.7.0",
     "loadbalance": "git+https://github.com/node-cloud/node-loadbalance.git",
     "request": "^2.81.0",
-    "request-promise": "^4.2.0"
+    "request-promise": "^4.2.0",
+    "uri-params": "^0.1.2"
   },
   "devDependencies": {
+    "ava": "^0.19.1",
     "babel-cli": "^6.24.1",
     "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-preset-env": "^1.4.0"
+    "babel-preset-env": "^1.4.0",
+    "consul": "^0.28.0",
+    "nyc": "^10.2.0"
   }
 }
