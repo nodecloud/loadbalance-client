@@ -37,7 +37,7 @@ export async function send(options = {}) {
     try {
         let response = await rp(options);
 
-        logger.debug(`Response success, response status code is ${response.statusCode}, body is ${JSON.stringify(response.body)}`);
+        logger.info(`Response success, response status code is ${response.statusCode}, body is ${JSON.stringify(response.body)}`);
 
         return response;
     } catch (e) {
