@@ -33,6 +33,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 class LoadBalanceClient {
     constructor(serviceName, consul, options = {}) {
+        this.options = options = options || {};
         this.serviceName = serviceName;
         this.consul = consul;
         this.watcher = new _ServiceWatcher2.default(serviceName, consul);
@@ -109,7 +110,7 @@ class LoadBalanceClient {
             });
 
             this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
-            engineCache.set(this.serviceName, loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE));
+            engineCache.set(this.serviceName, loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE));
         }
 
         return engineCache.get(this.serviceName).pick();
