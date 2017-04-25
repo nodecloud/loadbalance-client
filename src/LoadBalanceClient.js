@@ -14,7 +14,7 @@ export default class LoadBalanceClient {
         this.serviceName = serviceName;
         this.consul = consul;
         this.engineCache = {};
-        this.watcher = new ServiceWatcher(serviceName, consul);
+        this.watcher = new ServiceWatcher(serviceName, consul, options);
         this.initWatcher();
         this.logger = new Logger(options.logger);
     }

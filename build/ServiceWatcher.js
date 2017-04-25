@@ -7,23 +7,24 @@ Object.defineProperty(exports, "__esModule", {
  * Service watcher.
  */
 class ServiceWatcher {
-    constructor(serviceName, consul) {
+    constructor(serviceName, consul, options) {
         this.serviceName = serviceName;
         this.consul = consul;
+        this.options = options;
     }
 
     /**
      * Start watch.
      *
      * @param serviceName
+     * @param options
      */
-    watch(serviceName) {
-        this.watcher = this.consul.watch({
-            method: this.consul.health.service, options: {
-                service: serviceName || this.serviceName,
-                passing: true
-            }
-        });
+    watch(serviceName, options) {
+        options = options || this.options;
+        options.passsing = options.passing || true;
+        options.serviceName = serviceName || this.serviceName;
+
+        this.watcher = this.consul.watch({ method: this.consul.health.service, options: options });
 
         this.watcher.on('change', (data, res) => {
             this.change(data, res);

@@ -37,7 +37,7 @@ class LoadBalanceClient {
         this.serviceName = serviceName;
         this.consul = consul;
         this.engineCache = {};
-        this.watcher = new _ServiceWatcher2.default(serviceName, consul);
+        this.watcher = new _ServiceWatcher2.default(serviceName, consul, options);
         this.initWatcher();
         this.logger = new _Logger2.default(options.logger);
     }

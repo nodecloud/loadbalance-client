@@ -37,6 +37,7 @@ The consul client instance. you can see [node-consul](https://github.com/node-cl
 
 * strategy: Default is random. Others are 'round_robin_engine', 'priority_engine'.
 * logger: Default is console. You can use any other logger that implements logger.log function.
+* Other options you can see [node-consul](https://github.com/node-cloud/node-consul) for detail.
 
 ### lbClient.get(options)
 ### lbClient.post(options)

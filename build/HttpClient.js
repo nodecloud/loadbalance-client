@@ -13,18 +13,11 @@ exports.send = undefined;
  */
 let send = exports.send = (() => {
     var _ref = _asyncToGenerator(function* (options = {}) {
-        const logger = options.logger;
+        const logger = options.logger || console;
 
         //compile uri params.
-        if (options.url && options.url.replace) {
-            for (let key in options.params) {
-                if (!options.params.hasOwnProperty(key)) {
-                    continue;
-                }
-
-                const re = new RegExp(':' + key, 'g');
-                options.url = options.url.replace(re, options.params[key]);
-            }
+        if (options.url && options.params) {
+            options.url = (0, _uriParams2.default)(options.url, options.params);
         }
 
         logger.info(`It will send request. the request options is ${JSON.stringify(options)}`);
@@ -58,6 +51,10 @@ var _request2 = _interopRequireDefault(_request);
 var _requestPromise = require('request-promise');
 
 var _requestPromise2 = _interopRequireDefault(_requestPromise);
+
+var _uriParams = require('uri-params');
+
+var _uriParams2 = _interopRequireDefault(_uriParams);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
