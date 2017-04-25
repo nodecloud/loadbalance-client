@@ -22,7 +22,7 @@ class ServiceWatcher {
     watch(serviceName, options) {
         options = options || this.options;
         options.passsing = options.passing || true;
-        options.serviceName = serviceName || this.serviceName;
+        options.service = serviceName || this.serviceName;
 
         this.watcher = this.consul.watch({ method: this.consul.health.service, options: options });
 
