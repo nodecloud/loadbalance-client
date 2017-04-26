@@ -21,8 +21,7 @@ export async function send(options = {}) {
     }
 
     //set default configuration.
-    options.resolveWithFullResponse = options.resolveWithFullResponse || false;
-    options.simple = options.simple || false;
+    options.resolveWithFullResponse = options.resolveWithFullResponse || true;
     options.json = options.json || true;
 
     try {
