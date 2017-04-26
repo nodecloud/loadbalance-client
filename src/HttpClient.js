@@ -1,4 +1,5 @@
 //common lib
+import _ from 'lodash';
 import request from 'request';
 import rp from 'request-promise';
 import uriParams from 'uri-params';
@@ -21,8 +22,12 @@ export function send(options = {}) {
     }
 
     //set default configuration.
-    options.resolveWithFullResponse = options.resolveWithFullResponse || true;
-    options.json = options.json || true;
+    if (!_.has(options, 'resolveWithFullResponse')) {
+        options.resolveWithFullResponse = true;
+    }
+    if (!_.has(options, 'json')) {
+        options.json = true;
+    }
 
     return rp(options);
 }

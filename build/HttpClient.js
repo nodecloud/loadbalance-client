@@ -5,6 +5,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.send = send;
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _request = require('request');
 
 var _request2 = _interopRequireDefault(_request);
@@ -19,6 +23,7 @@ var _uriParams2 = _interopRequireDefault(_uriParams);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+//common lib
 _request2.default.defaults.pool = {
     pool: { maxSockets: Infinity }
 };
@@ -29,7 +34,6 @@ _request2.default.defaults.pool = {
  * @param options
  * @return {Promise.<*>}
  */
-//common lib
 function send(options = {}) {
 
     //compile uri params.
@@ -38,8 +42,12 @@ function send(options = {}) {
     }
 
     //set default configuration.
-    options.resolveWithFullResponse = options.resolveWithFullResponse || true;
-    options.json = options.json || true;
+    if (!_lodash2.default.has(options, 'resolveWithFullResponse')) {
+        options.resolveWithFullResponse = true;
+    }
+    if (!_lodash2.default.has(options, 'json')) {
+        options.json = true;
+    }
 
     return (0, _requestPromise2.default)(options);
 }
