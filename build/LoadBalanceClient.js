@@ -6,10 +6,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _Util = require('./Util');
 
-var _Logger = require('./Logger');
-
-var _Logger2 = _interopRequireDefault(_Logger);
-
 var _HttpClient = require('./HttpClient');
 
 var http = _interopRequireWildcard(_HttpClient);
@@ -22,9 +18,9 @@ var _ServiceWatcher = require('./ServiceWatcher');
 
 var _ServiceWatcher2 = _interopRequireDefault(_ServiceWatcher);
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -39,7 +35,6 @@ class LoadBalanceClient {
         this.engineCache = {};
         this.watcher = new _ServiceWatcher2.default(serviceName, consul, options);
         this.initWatcher();
-        this.logger = new _Logger2.default(options.logger);
     }
 
     send(options) {
@@ -52,7 +47,6 @@ class LoadBalanceClient {
             const endpoint = yield _this.getEndpoint();
 
             options.url = endpoint + options.url;
-            options.logger = _this.logger;
 
             return http.send(options);
         })();
@@ -106,11 +100,10 @@ class LoadBalanceClient {
             try {
                 service = yield _this6.getService();
             } catch (e) {
-                _this6.logger.error('Get consul service error.', e);
+                throw new Error('Get consul service error.');
             }
 
             if (!service) {
-                _this6.logger.error(`No service '${_this6.serviceName}' was found.`);
                 throw new Error(`No service '${_this6.serviceName}' was found.`);
             }
 
@@ -137,7 +130,6 @@ class LoadBalanceClient {
                     });
                 });
 
-                _this7.logger.info(`Refresh the '${_this7.serviceName}' service list, the list is ${JSON.stringify(services)}`);
                 _this7.engineCache[_this7.serviceName] = {
                     engine: loadBalance.getEngine(services, _this7.options.strategy || loadBalance.RANDOM_ENGINE),
                     hash: (0, _Util.md5)(JSON.stringify(services))
@@ -154,7 +146,6 @@ class LoadBalanceClient {
     initWatcher() {
         this.watcher.watch();
         this.watcher.change(services => {
-            this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
             let wrapper = this.engineCache[this.serviceName];
             let hash = (0, _Util.md5)(JSON.stringify(services));
             if (wrapper && hash !== wrapper.hash) {
@@ -169,9 +160,8 @@ class LoadBalanceClient {
 
             this.engineCache[this.serviceName] = wrapper;
         });
-        this.watcher.error(err => {
-            this.logger.error(`Check the service '${this.serviceName}''s health error`, err);
-        });
+
+        return this.watcher;
     }
 }
 exports.default = LoadBalanceClient;

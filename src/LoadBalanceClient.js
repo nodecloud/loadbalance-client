@@ -1,6 +1,5 @@
 import {md5} from './Util';
 
-import Logger from './Logger';
 import * as http from './HttpClient';
 import * as loadBalance from './LoadBalance';
 import ServiceWatcher from './ServiceWatcher';
@@ -16,7 +15,6 @@ export default class LoadBalanceClient {
         this.engineCache = {};
         this.watcher = new ServiceWatcher(serviceName, consul, options);
         this.initWatcher();
-        this.logger = new Logger(options.logger);
     }
 
     async send(options) {
@@ -26,7 +24,6 @@ export default class LoadBalanceClient {
         const endpoint = await this.getEndpoint();
 
         options.url = endpoint + options.url;
-        options.logger = this.logger;
 
         return http.send(options);
     }
@@ -60,11 +57,10 @@ export default class LoadBalanceClient {
         try {
             service = await this.getService();
         } catch (e) {
-            this.logger.error('Get consul service error.', e);
+            throw new Error('Get consul service error.');
         }
 
         if (!service) {
-            this.logger.error(`No service '${this.serviceName}' was found.`);
             throw new Error(`No service '${this.serviceName}' was found.`);
         }
 
@@ -87,7 +83,6 @@ export default class LoadBalanceClient {
                 });
             });
 
-            this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
             this.engineCache[this.serviceName] = {
                 engine: loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE),
                 hash: md5(JSON.stringify(services))
@@ -103,7 +98,6 @@ export default class LoadBalanceClient {
     initWatcher() {
         this.watcher.watch();
         this.watcher.change(services => {
-            this.logger.info(`Refresh the '${this.serviceName}' service list, the list is ${JSON.stringify(services)}`);
             let wrapper = this.engineCache[this.serviceName];
             let hash = md5(JSON.stringify(services));
             if (wrapper && hash !== wrapper.hash) {
@@ -118,8 +112,7 @@ export default class LoadBalanceClient {
 
             this.engineCache[this.serviceName] = wrapper;
         });
-        this.watcher.error(err => {
-            this.logger.error(`Check the service '${this.serviceName}''s health error`, err);
-        });
+
+        return this.watcher;
     }
 }

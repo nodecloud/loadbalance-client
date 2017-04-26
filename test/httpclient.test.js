@@ -8,7 +8,8 @@ test('sending a http request.', async t => {
         method: 'GET',
         params: {
             name: 'node-cloud'
-        }
+        },
+        resolveWithFullResponse: true
     });
 
     if (response.statusCode === 200) {
