@@ -1,3 +1,5 @@
+import request from 'request';
+
 import {md5} from './Util';
 
 import * as http from './HttpClient';
@@ -10,6 +12,7 @@ import ServiceWatcher from './ServiceWatcher';
 export default class LoadBalanceClient {
     constructor(serviceName, consul, options = {}) {
         this.options = options = options || {};
+        this.requestOptions = options.request || {};
         this.serviceName = serviceName;
         this.consul = consul;
         this.engineCache = {};
@@ -21,6 +24,14 @@ export default class LoadBalanceClient {
         if (!options) {
             throw new Error(`No options was given, please give an options before send api request.`);
         }
+
+        for (let key in this.requestOptions) {
+            if (!this.requestOptions.hasOwnProperty(key) || options[key]) {
+                continue;
+            }
+
+            options[key] = this.requestOptions[key];
+        }
         const endpoint = await this.getEndpoint();
 
         options.url = endpoint + options.url;
@@ -28,22 +39,22 @@ export default class LoadBalanceClient {
         return http.send(options);
     }
 
-    async get(options = {}) {
+    get(options = {}) {
         options.method = 'GET';
         return this.send(options);
     }
 
-    async post(options = {}) {
+    post(options = {}) {
         options.method = 'POST';
         return this.send(options);
     }
 
-    async del(options = {}) {
+    del(options = {}) {
         options.method = 'DELETE';
         return this.send(options);
     }
 
-    async put(options = {}) {
+    put(options = {}) {
         options.method = 'PUT';
         return this.send(options);
     }

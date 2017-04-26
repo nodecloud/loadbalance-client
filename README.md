@@ -36,7 +36,7 @@ The consul client instance. you can see [node-consul](https://github.com/node-cl
 #### options
 
 * strategy: Default is random. Others are 'round_robin_engine', 'priority_engine'.
-* logger: Default is console. You can use any other logger that implements logger.log function.
+* request: You can see [request](https://github.com/request/request) for detail.
 * Other options you can see [node-consul](https://github.com/node-cloud/node-consul) for detail.
 
 ### lbClient.get(options)
@@ -45,4 +45,6 @@ The consul client instance. you can see [node-consul](https://github.com/node-cl
 ### lbClient.put(options)
 ### lbClient.send(options)
 
-If you use send function, you must specific the options.method param. You can see [request](https://github.com/request/request) for detail.
+If you use send function, you must specific the options.method param. 
+You can see [request](https://github.com/request/request) for detail.
+This options have a higher priority than global options.

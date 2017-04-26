@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _request = require('request');
+
+var _request2 = _interopRequireDefault(_request);
+
 var _Util = require('./Util');
 
 var _HttpClient = require('./HttpClient');
@@ -18,9 +22,9 @@ var _ServiceWatcher = require('./ServiceWatcher');
 
 var _ServiceWatcher2 = _interopRequireDefault(_ServiceWatcher);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -30,6 +34,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 class LoadBalanceClient {
     constructor(serviceName, consul, options = {}) {
         this.options = options = options || {};
+        this.requestOptions = options.request || {};
         this.serviceName = serviceName;
         this.consul = consul;
         this.engineCache = {};
@@ -44,6 +49,14 @@ class LoadBalanceClient {
             if (!options) {
                 throw new Error(`No options was given, please give an options before send api request.`);
             }
+
+            for (let key in _this.requestOptions) {
+                if (!_this.requestOptions.hasOwnProperty(key) || options[key]) {
+                    continue;
+                }
+
+                options[key] = _this.requestOptions[key];
+            }
             const endpoint = yield _this.getEndpoint();
 
             options.url = endpoint + options.url;
@@ -53,39 +66,23 @@ class LoadBalanceClient {
     }
 
     get(options = {}) {
-        var _this2 = this;
-
-        return _asyncToGenerator(function* () {
-            options.method = 'GET';
-            return _this2.send(options);
-        })();
+        options.method = 'GET';
+        return this.send(options);
     }
 
     post(options = {}) {
-        var _this3 = this;
-
-        return _asyncToGenerator(function* () {
-            options.method = 'POST';
-            return _this3.send(options);
-        })();
+        options.method = 'POST';
+        return this.send(options);
     }
 
     del(options = {}) {
-        var _this4 = this;
-
-        return _asyncToGenerator(function* () {
-            options.method = 'DELETE';
-            return _this4.send(options);
-        })();
+        options.method = 'DELETE';
+        return this.send(options);
     }
 
     put(options = {}) {
-        var _this5 = this;
-
-        return _asyncToGenerator(function* () {
-            options.method = 'PUT';
-            return _this5.send(options);
-        })();
+        options.method = 'PUT';
+        return this.send(options);
     }
 
     /**
@@ -93,18 +90,18 @@ class LoadBalanceClient {
      * @return {Promise.<string>}
      */
     getEndpoint() {
-        var _this6 = this;
+        var _this2 = this;
 
         return _asyncToGenerator(function* () {
             let service = null;
             try {
-                service = yield _this6.getService();
+                service = yield _this2.getService();
             } catch (e) {
                 throw new Error('Get consul service error.');
             }
 
             if (!service) {
-                throw new Error(`No service '${_this6.serviceName}' was found.`);
+                throw new Error(`No service '${_this2.serviceName}' was found.`);
             }
 
             return `http://${service.Service.Address}:${service.Service.Port}`;
@@ -116,12 +113,12 @@ class LoadBalanceClient {
      * @return {Promise.<void>}
      */
     getService() {
-        var _this7 = this;
+        var _this3 = this;
 
         return _asyncToGenerator(function* () {
-            if (!_this7.engineCache[_this7.serviceName]) {
+            if (!_this3.engineCache[_this3.serviceName]) {
                 const services = yield new Promise(function (resolve, reject) {
-                    _this7.consul.health.service(_this7.serviceName, function (err, result) {
+                    _this3.consul.health.service(_this3.serviceName, function (err, result) {
                         if (err) {
                             return reject(err);
                         }
@@ -130,13 +127,13 @@ class LoadBalanceClient {
                     });
                 });
 
-                _this7.engineCache[_this7.serviceName] = {
-                    engine: loadBalance.getEngine(services, _this7.options.strategy || loadBalance.RANDOM_ENGINE),
+                _this3.engineCache[_this3.serviceName] = {
+                    engine: loadBalance.getEngine(services, _this3.options.strategy || loadBalance.RANDOM_ENGINE),
                     hash: (0, _Util.md5)(JSON.stringify(services))
                 };
             }
 
-            return _this7.engineCache[_this7.serviceName].engine.pick();
+            return _this3.engineCache[_this3.serviceName].engine.pick();
         })();
     }
 
