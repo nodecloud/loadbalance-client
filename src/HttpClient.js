@@ -24,9 +24,9 @@ export async function send(options = {}) {
     logger.info(`It will send request. the request options is ${JSON.stringify(options)}`);
 
     //set default configuration.
-    options.resolveWithFullResponse = true;
-    options.simple = false;
-    options.json = true;
+    options.resolveWithFullResponse = options.resolveWithFullResponse || false;
+    options.simple = options.simple || false;
+    options.json = options.json || true;
 
     try {
         let response = await rp(options);

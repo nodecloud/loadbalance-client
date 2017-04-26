@@ -23,9 +23,9 @@ let send = exports.send = (() => {
         logger.info(`It will send request. the request options is ${JSON.stringify(options)}`);
 
         //set default configuration.
-        options.resolveWithFullResponse = true;
-        options.simple = false;
-        options.json = true;
+        options.resolveWithFullResponse = options.resolveWithFullResponse || false;
+        options.simple = options.simple || false;
+        options.json = options.json || true;
 
         try {
             let response = yield (0, _requestPromise2.default)(options);
