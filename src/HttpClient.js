@@ -13,7 +13,7 @@ request.defaults.pool = {
  * @param options
  * @return {Promise.<*>}
  */
-export async function send(options = {}) {
+export function send(options = {}) {
 
     //compile uri params.
     if (options.url && options.params) {
@@ -24,11 +24,5 @@ export async function send(options = {}) {
     options.resolveWithFullResponse = options.resolveWithFullResponse || true;
     options.json = options.json || true;
 
-    try {
-        let response = await rp(options);
-
-        return response;
-    } catch (e) {
-        throw e;
-    }
+    return rp(options);
 }
