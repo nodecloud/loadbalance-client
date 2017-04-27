@@ -3,6 +3,13 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /**
  * Service watcher.
  */
@@ -21,7 +28,9 @@ class ServiceWatcher {
      */
     watch(serviceName, options) {
         options = options || this.options;
-        options.passsing = options.passing || true;
+        if (!_lodash2.default.has(options, 'passing')) {
+            options.passing = true;
+        }
         options.service = serviceName || this.serviceName;
 
         this.watcher = this.consul.watch({ method: this.consul.health.service, options: options });

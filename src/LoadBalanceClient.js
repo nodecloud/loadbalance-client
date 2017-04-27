@@ -1,4 +1,4 @@
-import request from 'request';
+import _ from 'lodash';
 
 import {md5} from './Util';
 
@@ -84,8 +84,14 @@ export default class LoadBalanceClient {
      */
     async getService() {
         if (!this.engineCache[this.serviceName]) {
+            let options = this.options;
+            options.service = this.serviceName;
+            if (!_.has(options, 'passing')) {
+                options.passing = true;
+            }
+
             const services = await new Promise((resolve, reject) => {
-                this.consul.health.service(this.serviceName, (err, result) => {
+                this.consul.health.service(options, (err, result) => {
                     if (err) {
                         return reject(err);
                     }

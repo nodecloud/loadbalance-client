@@ -4,9 +4,9 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _request = require('request');
+var _lodash = require('lodash');
 
-var _request2 = _interopRequireDefault(_request);
+var _lodash2 = _interopRequireDefault(_lodash);
 
 var _Util = require('./Util');
 
@@ -117,8 +117,14 @@ class LoadBalanceClient {
 
         return _asyncToGenerator(function* () {
             if (!_this3.engineCache[_this3.serviceName]) {
+                let options = _this3.options;
+                options.service = _this3.serviceName;
+                if (!_lodash2.default.has(options, 'passing')) {
+                    options.passing = true;
+                }
+
                 const services = yield new Promise(function (resolve, reject) {
-                    _this3.consul.health.service(_this3.serviceName, function (err, result) {
+                    _this3.consul.health.service(options, function (err, result) {
                         if (err) {
                             return reject(err);
                         }

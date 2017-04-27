@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 /**
  * Service watcher.
  */
@@ -16,7 +18,9 @@ export default class ServiceWatcher {
      */
     watch(serviceName, options) {
         options = options || this.options;
-        options.passsing = options.passing || true;
+        if (!_.has(options, 'passing')) {
+            options.passing = true;
+        }
         options.service = serviceName || this.serviceName;
 
         this.watcher = this.consul.watch({method: this.consul.health.service, options: options});
