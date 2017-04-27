@@ -59,9 +59,20 @@ class LoadBalanceClient {
             }
             const endpoint = yield _this.getEndpoint();
 
-            options.url = endpoint + options.url;
+            let request = {};
+            for (let key in options) {
+                if (!options.hasOwnProperty(key)) {
+                    continue;
+                }
 
-            return http.send(options);
+                if (key === 'url') {
+                    request[key] = endpoint + options[key];
+                } else {
+                    request[key] = options[key];
+                }
+            }
+
+            return http.send(request);
         })();
     }
 
