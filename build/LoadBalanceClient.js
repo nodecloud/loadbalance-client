@@ -117,8 +117,11 @@ class LoadBalanceClient {
 
         return _asyncToGenerator(function* () {
             if (!_this3.engineCache[_this3.serviceName]) {
+                let options = {};
+                options.passsing = _this3.options.passing || true;
+                options.service = _this3.serviceName;
                 const services = yield new Promise(function (resolve, reject) {
-                    _this3.consul.health.service(_this3.serviceName, function (err, result) {
+                    _this3.consul.health.service(options, function (err, result) {
                         if (err) {
                             return reject(err);
                         }

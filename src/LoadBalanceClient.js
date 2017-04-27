@@ -84,8 +84,11 @@ export default class LoadBalanceClient {
      */
     async getService() {
         if (!this.engineCache[this.serviceName]) {
+            let options = {};
+            options.passsing = this.options.passing || true;
+            options.service = this.serviceName;
             const services = await new Promise((resolve, reject) => {
-                this.consul.health.service(this.serviceName, (err, result) => {
+                this.consul.health.service(options, (err, result) => {
                     if (err) {
                         return reject(err);
                     }
