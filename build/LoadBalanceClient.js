@@ -22,11 +22,17 @@ var _ServiceWatcher = require('./ServiceWatcher');
 
 var _ServiceWatcher2 = _interopRequireDefault(_ServiceWatcher);
 
+var _RefreshingEvent = require('./RefreshingEvent');
+
+var _RefreshingEvent2 = _interopRequireDefault(_RefreshingEvent);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+const REFRESHING_SERVICE_LIST_EVENT = 'refreshing-services';
 
 /**
  * An http client with load balance.
@@ -40,6 +46,15 @@ class LoadBalanceClient {
         this.engineCache = {};
         this.watcher = new _ServiceWatcher2.default(serviceName, consul, options);
         this.initWatcher();
+        this.event = new _RefreshingEvent2.default();
+    }
+
+    on(eventName, callback) {
+        this.event.on(eventName, callback);
+    }
+
+    off(eventName, callback) {
+        this.event.removeListener(eventName, callback);
     }
 
     send(options) {
@@ -144,10 +159,14 @@ class LoadBalanceClient {
                     });
                 });
 
-                _this3.engineCache[_this3.serviceName] = {
+                const wrapper = {
                     engine: loadBalance.getEngine(services, _this3.options.strategy || loadBalance.RANDOM_ENGINE),
                     hash: (0, _Util.md5)(JSON.stringify(services))
                 };
+
+                _this3.engineCache[_this3.serviceName] = wrapper;
+
+                _this3.event.on(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.hash);
             }
 
             return _this3.engineCache[_this3.serviceName].engine.pick();
@@ -165,11 +184,15 @@ class LoadBalanceClient {
             if (wrapper && hash !== wrapper.hash) {
                 wrapper.engine.update(services);
                 wrapper.hash = hash;
+
+                this.event.on(REFRESHING_SERVICE_LIST_EVENT, services, hash, wrapper.hash);
             } else if (!wrapper) {
                 wrapper = {
                     engine: loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE),
                     hash: hash
                 };
+
+                this.event.on(REFRESHING_SERVICE_LIST_EVENT, services, hash);
             }
 
             this.engineCache[this.serviceName] = wrapper;

@@ -5,6 +5,9 @@ import {md5} from './Util';
 import * as http from './HttpClient';
 import * as loadBalance from './LoadBalance';
 import ServiceWatcher from './ServiceWatcher';
+import RefreshingEvent from './RefreshingEvent';
+
+const REFRESHING_SERVICE_LIST_EVENT = 'refreshing-services';
 
 /**
  * An http client with load balance.
@@ -18,6 +21,15 @@ export default class LoadBalanceClient {
         this.engineCache = {};
         this.watcher = new ServiceWatcher(serviceName, consul, options);
         this.initWatcher();
+        this.event = new RefreshingEvent();
+    }
+
+    on(eventName, callback) {
+        this.event.on(eventName, callback);
+    }
+
+    off(eventName, callback) {
+        this.event.removeListener(eventName, callback);
     }
 
     async send(options) {
@@ -112,10 +124,14 @@ export default class LoadBalanceClient {
                 });
             });
 
-            this.engineCache[this.serviceName] = {
+            const wrapper = {
                 engine: loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE),
                 hash: md5(JSON.stringify(services))
             };
+
+            this.engineCache[this.serviceName] = wrapper;
+
+            this.event.on(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.hash);
         }
 
         return this.engineCache[this.serviceName].engine.pick();
@@ -131,12 +147,16 @@ export default class LoadBalanceClient {
             let hash = md5(JSON.stringify(services));
             if (wrapper && hash !== wrapper.hash) {
                 wrapper.engine.update(services);
-                wrapper.hash = hash
+                wrapper.hash = hash;
+
+                this.event.on(REFRESHING_SERVICE_LIST_EVENT, services, hash, wrapper.hash);
             } else if (!wrapper) {
                 wrapper = {
                     engine: loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE),
                     hash: hash
-                }
+                };
+
+                this.event.on(REFRESHING_SERVICE_LIST_EVENT, services, hash);
             }
 
             this.engineCache[this.serviceName] = wrapper;
