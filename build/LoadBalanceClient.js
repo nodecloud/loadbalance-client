@@ -166,7 +166,7 @@ class LoadBalanceClient {
 
                 _this3.engineCache[_this3.serviceName] = wrapper;
 
-                _this3.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.hash);
+                _this3.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.engine._pool);
             }
 
             return _this3.engineCache[_this3.serviceName].engine.pick();
@@ -184,17 +184,14 @@ class LoadBalanceClient {
             if (wrapper && hash !== wrapper.hash) {
                 wrapper.engine.update(services);
                 wrapper.hash = hash;
-
-                this.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, hash, wrapper.hash);
             } else if (!wrapper) {
                 wrapper = {
                     engine: loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE),
                     hash: hash
                 };
-
-                this.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, hash);
             }
 
+            this.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.engine._pool);
             this.engineCache[this.serviceName] = wrapper;
         });
 
