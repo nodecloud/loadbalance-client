@@ -23,17 +23,13 @@ var _uriParams2 = _interopRequireDefault(_uriParams);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-//common lib
-_request2.default.defaults.pool = {
-    pool: { maxSockets: Infinity }
-};
-
 /**
  * Send http request.
  *
  * @param options
  * @return {Promise.<*>}
  */
+//common lib
 function send(options = {}) {
 
     //compile uri params.

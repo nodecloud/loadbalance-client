@@ -44,7 +44,7 @@ export default class LoadBalanceClient {
 
             options[key] = this.requestOptions[key];
         }
-        const endpoint = await this.getEndpoint();
+        const address = await this.getAddress();
 
         let request = {};
         for (let key in options) {
@@ -53,7 +53,7 @@ export default class LoadBalanceClient {
             }
 
             if (key === 'url') {
-                request[key] = endpoint + options[key];
+                request[key] = `${options.scheme || 'http'}://${address}${options[key]}`;
             } else {
                 request[key] = options[key];
             }
@@ -84,10 +84,10 @@ export default class LoadBalanceClient {
     }
 
     /**
-     * Get a http endpoint.
+     * Get a http address.
      * @return {Promise.<string>}
      */
-    async getEndpoint() {
+    async getAddress() {
         let service = null;
         try {
             service = await this.getService();
@@ -99,7 +99,11 @@ export default class LoadBalanceClient {
             throw new Error(`No service '${this.serviceName}' was found.`);
         }
 
-        return `http://${service.Service.Address}:${service.Service.Port}`;
+        if (service.Service.Port === 80 || !service.Service.Address) {
+            return service.Service.Address;
+        }
+
+        return `${service.Service.Address}:${service.Service.Port}`;
     }
 
     /**

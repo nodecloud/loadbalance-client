@@ -17,7 +17,7 @@ class ServiceWatcher {
     constructor(serviceName, consul, options) {
         this.serviceName = serviceName;
         this.consul = consul;
-        this.options = options;
+        this.options = options || {};
     }
 
     /**

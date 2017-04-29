@@ -72,7 +72,7 @@ class LoadBalanceClient {
 
                 options[key] = _this.requestOptions[key];
             }
-            const endpoint = yield _this.getEndpoint();
+            const address = yield _this.getAddress();
 
             let request = {};
             for (let key in options) {
@@ -81,7 +81,7 @@ class LoadBalanceClient {
                 }
 
                 if (key === 'url') {
-                    request[key] = endpoint + options[key];
+                    request[key] = `${options.scheme || 'http'}://${address}${options[key]}`;
                 } else {
                     request[key] = options[key];
                 }
@@ -112,10 +112,10 @@ class LoadBalanceClient {
     }
 
     /**
-     * Get a http endpoint.
+     * Get a http address.
      * @return {Promise.<string>}
      */
-    getEndpoint() {
+    getAddress() {
         var _this2 = this;
 
         return _asyncToGenerator(function* () {
@@ -130,7 +130,11 @@ class LoadBalanceClient {
                 throw new Error(`No service '${_this2.serviceName}' was found.`);
             }
 
-            return `http://${service.Service.Address}:${service.Service.Port}`;
+            if (service.Service.Port === 80 || !service.Service.Address) {
+                return service.Service.Address;
+            }
+
+            return `${service.Service.Address}:${service.Service.Port}`;
         })();
     }
 

@@ -4,10 +4,6 @@ import request from 'request';
 import rp from 'request-promise';
 import uriParams from 'uri-params';
 
-request.defaults.pool = {
-    pool: {maxSockets: Infinity}
-};
-
 /**
  * Send http request.
  *

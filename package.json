@@ -1,11 +1,12 @@
 {
   "name": "loadbalance-client",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "An http client by request with loadbalance.",
   "main": "build/LoadBalanceClient.js",
   "scripts": {
     "build": "babel src -d build",
-    "test": "NODE_ENV=development nyc ava ./test"
+    "test": "NODE_ENV=development nyc ava ./test",
+    "report": "nyc report --reporter=html"
   },
   "ava": {
     "require": [

@@ -15,8 +15,8 @@ test.before(async t => {
         const service = {
             id: 'test-service-id',
             name: 'test-service-name',
-            address: 'localhost',
-            port: 8500
+            address: 'api.github.com',
+            port: 80
         };
 
         consul.agent.service.register(service, function (err) {
@@ -44,7 +44,23 @@ test('end watcher test', async t => {
     const watcher = new ServiceWatcher('test-service-id', consul);
     watcher.watch();
     watcher.end();
-    t.pass();
+    await new Promise((resolve, reject) => {
+        watcher.change(function () {
+            resolve();
+        });
+
+        consul.agent.service.deregister('test-service-id', function (err) {
+            if (err) {
+                throw err;
+            }
+        });
+
+        setTimeout(reject, 2000);
+    }).then(function () {
+        t.fail();
+    }).catch(function () {
+        t.pass();
+    });
 });
 
 test.after(t => {
