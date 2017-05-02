@@ -8,6 +8,7 @@ import ServiceWatcher from './ServiceWatcher';
 import RefreshingEvent from './RefreshingEvent';
 
 const REFRESHING_SERVICE_LIST_EVENT = 'refreshing-services';
+const REFRESHING_SERVICE_LIST_ERROR_EVENT = 'refreshing-services-error';
 
 /**
  * An http client with load balance.
@@ -161,6 +162,10 @@ export default class LoadBalanceClient {
 
             this.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.engine._pool);
             this.engineCache[this.serviceName] = wrapper;
+        });
+
+        this.watcher.error(err => {
+            this.event.emit(REFRESHING_SERVICE_LIST_ERROR_EVENT, err);
         });
 
         return this.watcher;
