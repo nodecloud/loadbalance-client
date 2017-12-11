@@ -23,6 +23,23 @@ export default class LoadBalanceClient {
         this.watcher = new ServiceWatcher(serviceName, consul, options);
         this.initWatcher();
         this.event = new RefreshingEvent();
+
+        this.preSend = () => {
+        };
+        this.postSend = () => {
+        };
+    }
+
+    onPreSend(callback) {
+        if (typeof callback === 'function') {
+            this.preSend = callback;
+        }
+    }
+
+    onPostSend(callback) {
+        if (typeof callback === 'function') {
+            this.postSend = callback;
+        }
     }
 
     on(eventName, callback) {
@@ -61,7 +78,10 @@ export default class LoadBalanceClient {
 
         }
 
-        return http.send(request);
+        this.preSend(request);
+        const response = await http.send(request);
+        this.postSend(response);
+        return response;
     }
 
     get(options = {}) {

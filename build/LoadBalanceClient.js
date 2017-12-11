@@ -33,6 +33,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 const REFRESHING_SERVICE_LIST_EVENT = 'refreshing-services';
+const REFRESHING_SERVICE_LIST_ERROR_EVENT = 'refreshing-services-error';
 
 /**
  * An http client with load balance.
@@ -47,6 +48,21 @@ class LoadBalanceClient {
         this.watcher = new _ServiceWatcher2.default(serviceName, consul, options);
         this.initWatcher();
         this.event = new _RefreshingEvent2.default();
+
+        this.preSend = () => {};
+        this.postSend = () => {};
+    }
+
+    onPreSend(callback) {
+        if (typeof callback === 'function') {
+            this.preSend = callback;
+        }
+    }
+
+    onPostSend(callback) {
+        if (typeof callback === 'function') {
+            this.postSend = callback;
+        }
     }
 
     on(eventName, callback) {
@@ -87,7 +103,10 @@ class LoadBalanceClient {
                 }
             }
 
-            return http.send(request);
+            _this.preSend(request);
+            const response = yield http.send(request);
+            _this.postSend(response);
+            return response;
         })();
     }
 
@@ -197,6 +216,10 @@ class LoadBalanceClient {
 
             this.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.engine._pool);
             this.engineCache[this.serviceName] = wrapper;
+        });
+
+        this.watcher.error(err => {
+            this.event.emit(REFRESHING_SERVICE_LIST_ERROR_EVENT, err);
         });
 
         return this.watcher;

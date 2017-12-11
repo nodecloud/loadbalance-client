@@ -49,6 +49,9 @@ If you use send function, you must specific the options.method param.
 You can see [request](https://github.com/request/request) for detail.
 This options have a higher priority than global options.
 
+### lbClient.onPreSend(callback: request)
+### lbClient.onPostSend(callback: response)
+
 ## Event
 support events:
 
