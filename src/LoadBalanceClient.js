@@ -79,9 +79,14 @@ export default class LoadBalanceClient {
         }
 
         this.preSend(request);
-        const response = await http.send(request);
-        this.postSend(response);
-        return response;
+        try {
+            const response = await http.send(request);
+            this.postSend(null, response);
+            return response;
+        } catch (e) {
+            this.postSend(e);
+            throw e;
+        }
     }
 
     get(options = {}) {

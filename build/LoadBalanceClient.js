@@ -104,9 +104,14 @@ class LoadBalanceClient {
             }
 
             _this.preSend(request);
-            const response = yield http.send(request);
-            _this.postSend(response);
-            return response;
+            try {
+                const response = yield http.send(request);
+                _this.postSend(null, response);
+                return response;
+            } catch (e) {
+                _this.postSend(e);
+                throw e;
+            }
         })();
     }
 
