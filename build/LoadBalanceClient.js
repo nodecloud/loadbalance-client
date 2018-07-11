@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -73,7 +75,7 @@ class LoadBalanceClient {
         this.event.removeListener(eventName, callback);
     }
 
-    send(options) {
+    getRequestOptions(options) {
         var _this = this;
 
         return _asyncToGenerator(function* () {
@@ -90,7 +92,7 @@ class LoadBalanceClient {
             }
             const address = yield _this.getAddress();
 
-            let request = {};
+            const request = {};
             for (let key in options) {
                 if (!options.hasOwnProperty(key)) {
                     continue;
@@ -102,14 +104,43 @@ class LoadBalanceClient {
                     request[key] = options[key];
                 }
             }
+            return request;
+        })();
+    }
 
-            _this.preSend(request);
+    upload(options) {
+        var _this2 = this;
+
+        return _asyncToGenerator(function* () {
+            const request = yield _this2.getRequestOptions(options);
+            const newRequest = _this2.preSend(request);
+            const requestObj = _extends({}, request, newRequest);
             try {
-                const response = yield http.send(request);
-                _this.postSend(null, response);
+                const stream = http.upload(requestObj);
+                _this2.postSend(null, stream, requestObj);
+                return stream;
+            } catch (e) {
+                _this2.postSend(e);
+                throw e;
+            }
+        })();
+    }
+
+    send(options) {
+        var _this3 = this;
+
+        return _asyncToGenerator(function* () {
+
+            const request = yield _this3.getRequestOptions(options);
+            const newRequest = _this3.preSend(request);
+            const requestObj = _extends({}, request, newRequest);
+
+            try {
+                const response = yield http.send(requestObj);
+                _this3.postSend(null, response, requestObj);
                 return response;
             } catch (e) {
-                _this.postSend(e);
+                _this3.postSend(e);
                 throw e;
             }
         })();
@@ -140,18 +171,18 @@ class LoadBalanceClient {
      * @return {Promise.<string>}
      */
     getAddress() {
-        var _this2 = this;
+        var _this4 = this;
 
         return _asyncToGenerator(function* () {
             let service = null;
             try {
-                service = yield _this2.getService();
+                service = yield _this4.getService();
             } catch (e) {
                 throw new Error('Get consul service error.');
             }
 
             if (!service) {
-                throw new Error(`No service '${_this2.serviceName}' was found.`);
+                throw new Error(`No service '${_this4.serviceName}' was found.`);
             }
 
             if (service.Service.Port === 80 || !service.Service.Address) {
@@ -167,18 +198,18 @@ class LoadBalanceClient {
      * @return {Promise.<void>}
      */
     getService() {
-        var _this3 = this;
+        var _this5 = this;
 
         return _asyncToGenerator(function* () {
-            if (!_this3.engineCache[_this3.serviceName]) {
-                let options = _this3.options;
-                options.service = _this3.serviceName;
+            if (!_this5.engineCache[_this5.serviceName]) {
+                let options = _this5.options;
+                options.service = _this5.serviceName;
                 if (!_lodash2.default.has(options, 'passing')) {
                     options.passing = true;
                 }
 
                 const services = yield new Promise(function (resolve, reject) {
-                    _this3.consul.health.service(options, function (err, result) {
+                    _this5.consul.health.service(options, function (err, result) {
                         if (err) {
                             return reject(err);
                         }
@@ -188,16 +219,16 @@ class LoadBalanceClient {
                 });
 
                 const wrapper = {
-                    engine: loadBalance.getEngine(services, _this3.options.strategy || loadBalance.RANDOM_ENGINE),
+                    engine: loadBalance.getEngine(services, _this5.options.strategy || loadBalance.RANDOM_ENGINE),
                     hash: (0, _Util.md5)(JSON.stringify(services))
                 };
 
-                _this3.engineCache[_this3.serviceName] = wrapper;
+                _this5.engineCache[_this5.serviceName] = wrapper;
 
-                _this3.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.engine._pool);
+                _this5.event.emit(REFRESHING_SERVICE_LIST_EVENT, services, wrapper.engine._pool);
             }
 
-            return _this3.engineCache[_this3.serviceName].engine.pick();
+            return _this5.engineCache[_this5.serviceName].engine.pick();
         })();
     }
 

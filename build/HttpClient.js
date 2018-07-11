@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.send = send;
+exports.upload = upload;
 
 var _lodash = require('lodash');
 
@@ -46,4 +47,21 @@ function send(options = {}) {
     }
 
     return (0, _requestPromise2.default)(options);
+}
+
+function upload(options) {
+    //compile uri params.
+    if (options.url && options.params) {
+        options.url = (0, _uriParams2.default)(options.url, options.params);
+    }
+
+    //set default configuration.
+    if (!_lodash2.default.has(options, 'resolveWithFullResponse')) {
+        options.resolveWithFullResponse = true;
+    }
+    if (!_lodash2.default.has(options, 'json')) {
+        options.json = true;
+    }
+
+    return (0, _request2.default)(options);
 }

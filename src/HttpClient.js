@@ -27,3 +27,20 @@ export function send(options = {}) {
 
     return rp(options);
 }
+
+export function upload(options) {
+    //compile uri params.
+    if (options.url && options.params) {
+        options.url = uriParams(options.url, options.params);
+    }
+
+    //set default configuration.
+    if (!_.has(options, 'resolveWithFullResponse')) {
+        options.resolveWithFullResponse = true;
+    }
+    if (!_.has(options, 'json')) {
+        options.json = true;
+    }
+
+    return request(options);
+}

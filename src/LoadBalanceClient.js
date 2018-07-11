@@ -50,7 +50,7 @@ export default class LoadBalanceClient {
         this.event.removeListener(eventName, callback);
     }
 
-    async send(options) {
+    async getRequestOptions(options) {
         if (!options) {
             throw new Error(`No options was given, please give an options before send api request.`);
         }
@@ -64,7 +64,7 @@ export default class LoadBalanceClient {
         }
         const address = await this.getAddress();
 
-        let request = {};
+        const request = {};
         for (let key in options) {
             if (!options.hasOwnProperty(key)) {
                 continue;
@@ -77,11 +77,32 @@ export default class LoadBalanceClient {
             }
 
         }
+        return request;
+    }
 
-        this.preSend(request);
+    async upload(options) {
+        const request = await this.getRequestOptions(options);
+        const newRequest = this.preSend(request);
+        const requestObj = {...request, ...newRequest};
         try {
-            const response = await http.send(request);
-            this.postSend(null, response);
+            const stream = http.upload(requestObj);
+            this.postSend(null, stream, requestObj);
+            return stream;
+        } catch (e) {
+            this.postSend(e);
+            throw e;
+        }
+    }
+
+    async send(options) {
+
+        const request = await this.getRequestOptions(options);
+        const newRequest = this.preSend(request);
+        const requestObj = {...request, ...newRequest};
+
+        try {
+            const response = await http.send(requestObj);
+            this.postSend(null, response, requestObj);
             return response;
         } catch (e) {
             this.postSend(e);
