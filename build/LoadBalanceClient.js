@@ -256,6 +256,7 @@ class LoadBalanceClient {
             let wrapper = this.engineCache[this.serviceName];
             let hash = (0, _Util.md5)(JSON.stringify(services));
             if (wrapper && hash !== wrapper.hash) {
+                wrapper.pool = services;
                 wrapper.engine.update(services);
                 wrapper.hash = hash;
             } else if (!wrapper) {
