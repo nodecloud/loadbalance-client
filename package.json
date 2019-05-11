@@ -1,6 +1,6 @@
 {
   "name": "loadbalance-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An http client by request with loadbalance.",
   "main": "build/LoadBalanceClient.js",
   "scripts": {

@@ -75,7 +75,7 @@ class LoadBalanceClient {
         this.event.removeListener(eventName, callback);
     }
 
-    getRequestOptions(options) {
+    getRequestOptions(service, options) {
         var _this = this;
 
         return _asyncToGenerator(function* () {
@@ -90,7 +90,7 @@ class LoadBalanceClient {
 
                 options[key] = _this.requestOptions[key];
             }
-            const address = yield _this.getAddress();
+            const address = yield _this.getAddress(service);
 
             const request = {};
             for (let key in options) {
@@ -112,7 +112,8 @@ class LoadBalanceClient {
         var _this2 = this;
 
         return _asyncToGenerator(function* () {
-            const request = yield _this2.getRequestOptions(options);
+            const service = yield _this2.getService();
+            const request = yield _this2.getRequestOptions(service, options);
             const newRequest = _this2.preSend(request);
             const requestObj = _extends({}, request, newRequest);
             try {
@@ -121,6 +122,9 @@ class LoadBalanceClient {
                 return stream;
             } catch (e) {
                 _this2.postSend(e);
+                if (!e.response) {
+                    _this2.removeUnavailableNode(`${service.Service.Address}:${service.Service.Port}`);
+                }
                 throw e;
             }
         })();
@@ -130,8 +134,8 @@ class LoadBalanceClient {
         var _this3 = this;
 
         return _asyncToGenerator(function* () {
-
-            const request = yield _this3.getRequestOptions(options);
+            const service = yield _this3.getService();
+            const request = yield _this3.getRequestOptions(service, options);
             const newRequest = _this3.preSend(request);
             const requestObj = _extends({}, request, newRequest);
 
@@ -141,9 +145,26 @@ class LoadBalanceClient {
                 return response;
             } catch (e) {
                 _this3.postSend(e);
+                if (!e.response) {
+                    _this3.removeUnavailableNode(`${service.Service.Address}:${service.Service.Port}`);
+                }
                 throw e;
             }
         })();
+    }
+
+    removeUnavailableNode(key) {
+        const wrapper = this.engineCache[this.serviceName];
+        if (wrapper) {
+            const filterdServices = wrapper.pool.filter(service => {
+                return `${service.Service.Address}:${service.Service.Port}` !== key;
+            });
+            this.engineCache[this.serviceName] = {
+                pool: filterdServices,
+                engine: loadBalance.getEngine(filterdServices, this.options.strategy || loadBalance.RANDOM_ENGINE),
+                hash: (0, _Util.md5)(JSON.stringify(filterdServices))
+            };
+        }
     }
 
     get(options = {}) {
@@ -170,17 +191,10 @@ class LoadBalanceClient {
      * Get a http address.
      * @return {Promise.<string>}
      */
-    getAddress() {
+    getAddress(service) {
         var _this4 = this;
 
         return _asyncToGenerator(function* () {
-            let service = null;
-            try {
-                service = yield _this4.getService();
-            } catch (e) {
-                throw new Error('Get consul service error.');
-            }
-
             if (!service) {
                 throw new Error(`No service '${_this4.serviceName}' was found.`);
             }
@@ -219,6 +233,7 @@ class LoadBalanceClient {
                 });
 
                 const wrapper = {
+                    pool: services,
                     engine: loadBalance.getEngine(services, _this5.options.strategy || loadBalance.RANDOM_ENGINE),
                     hash: (0, _Util.md5)(JSON.stringify(services))
                 };
@@ -245,6 +260,7 @@ class LoadBalanceClient {
                 wrapper.hash = hash;
             } else if (!wrapper) {
                 wrapper = {
+                    pool: services,
                     engine: loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE),
                     hash: hash
                 };

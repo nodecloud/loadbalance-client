@@ -50,7 +50,7 @@ export default class LoadBalanceClient {
         this.event.removeListener(eventName, callback);
     }
 
-    async getRequestOptions(options) {
+    async getRequestOptions(service, options) {
         if (!options) {
             throw new Error(`No options was given, please give an options before send api request.`);
         }
@@ -62,7 +62,7 @@ export default class LoadBalanceClient {
 
             options[key] = this.requestOptions[key];
         }
-        const address = await this.getAddress();
+        const address = await this.getAddress(service);
 
         const request = {};
         for (let key in options) {
@@ -81,7 +81,8 @@ export default class LoadBalanceClient {
     }
 
     async upload(options) {
-        const request = await this.getRequestOptions(options);
+        const service = await this.getService();
+        const request = await this.getRequestOptions(service, options);
         const newRequest = this.preSend(request);
         const requestObj = {...request, ...newRequest};
         try {
@@ -90,13 +91,16 @@ export default class LoadBalanceClient {
             return stream;
         } catch (e) {
             this.postSend(e);
+            if (!e.response) {
+                this.removeUnavailableNode(`${service.Service.Address}:${service.Service.Port}`);
+            }
             throw e;
         }
     }
 
     async send(options) {
-
-        const request = await this.getRequestOptions(options);
+        const service = await this.getService();
+        const request = await this.getRequestOptions(service, options);
         const newRequest = this.preSend(request);
         const requestObj = {...request, ...newRequest};
 
@@ -106,7 +110,24 @@ export default class LoadBalanceClient {
             return response;
         } catch (e) {
             this.postSend(e);
+            if (!e.response) {
+                this.removeUnavailableNode(`${service.Service.Address}:${service.Service.Port}`);
+            }
             throw e;
+        }
+    }
+
+    removeUnavailableNode(key) {
+        const wrapper = this.engineCache[this.serviceName];
+        if (wrapper) {
+            const filterdServices = wrapper.pool.filter(service => {
+                return `${service.Service.Address}:${service.Service.Port}` !== key;
+            });
+            this.engineCache[this.serviceName] = {
+                pool: filterdServices,
+                engine: loadBalance.getEngine(filterdServices, this.options.strategy || loadBalance.RANDOM_ENGINE),
+                hash: md5(JSON.stringify(filterdServices))
+            };
         }
     }
 
@@ -134,14 +155,7 @@ export default class LoadBalanceClient {
      * Get a http address.
      * @return {Promise.<string>}
      */
-    async getAddress() {
-        let service = null;
-        try {
-            service = await this.getService();
-        } catch (e) {
-            throw new Error('Get consul service error.');
-        }
-
+    async getAddress(service) {
         if (!service) {
             throw new Error(`No service '${this.serviceName}' was found.`);
         }
@@ -176,6 +190,7 @@ export default class LoadBalanceClient {
             });
 
             const wrapper = {
+                pool: services,
                 engine: loadBalance.getEngine(services, this.options.strategy || loadBalance.RANDOM_ENGINE),
                 hash: md5(JSON.stringify(services))
             };
@@ -201,6 +216,7 @@ export default class LoadBalanceClient {
                 wrapper.hash = hash;
             } else if (!wrapper) {
                 wrapper = {
+                    pool: services,
                     engine: loadBalance.getEngine(services, loadBalance.RANDOM_ENGINE),
                     hash: hash
                 };
